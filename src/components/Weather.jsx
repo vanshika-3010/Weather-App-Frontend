@@ -11,7 +11,10 @@ import humidity_icon from '../assets/humidity.png'
 
 const Weather = () => {
     const inputRef=useRef()
+    const [forecast, setForecast] = useState([]);
     const [weatherData,setWeatherData] = useState(false);
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState("");
 
     const allIcons={
       "01d": clear_icon,
@@ -29,72 +32,162 @@ const Weather = () => {
       "13d":snow_icon,
       "13n":snow_icon,
     }
-    const search = async(city)=>{
-        if(city === ""){
-            alert("Enter City Name");
-            return;
-        }
-        try {
-            const url = `https://api.openweathermap.org/data/2.5/weather?q=${city}&units=metric&&appid=${import.meta.env.VITE_APP_ID}`;
+    
+    const fetchForecast = async (city) => {
+  try {
+    const res = await fetch(`http://localhost:5000/forecast?city=${city}`);
+    const data = await res.json();
 
-            const response=await fetch(url);
-            const data=await response.json();
+    if (res.ok) {
+      setForecast(data);
+    }
+  } catch (err) {
+    console.log("Forecast error:", err);
+  }
+};
 
-            if(!response.ok){
-                alert(data.message);
-                return;
-            }
-
-            console.log(data);
-            const icon=allIcons[data.weather[0].icon] || clear_icon;
-            setWeatherData({
-                humidity:data.main.humidity,
-                windSpeed:data.wind.speed,
-                temperature:Math.floor(data.main.temp),
-                location:data.name,
-                icon:icon
-            })
-        } catch (error) {
-            setWeatherData(false);
-            console.error("Error in fetching weather data");
-        }
+    const search = async (city) => {
+    if (city === "") {
+        setError("Please enter a city name");
+        return;
     }
 
-    useEffect(()=>{
-        search("London");
-},[])
+    try {
+        setLoading(true);
+        setError("");
+
+        const url = `http://localhost:5000/weather?city=${city}`;
+        const response = await fetch(url);
+        console.log("Response status:", response.status);
+        console.log("Response ok:", response.ok);
+        const data = await response.json();
+        console.log("Data received:", data);
+
+        if (!response.ok) {
+            setError(data.error || "City not found");
+            setWeatherData(false);
+            setLoading(false);
+            return;
+        }
+
+        const icon = allIcons[data.icon] || clear_icon;
+
+       setWeatherData({
+       temperature: data.temperature,
+       humidity: data.humidity,
+       windSpeed: data.windSpeed,
+       location: data.location,
+       icon: data.icon,
+       condition: data.condition
+       });    
+        
+       await fetchForecast(city); 
+        setLoading(false);
+
+    } catch (error) {
+        setError("Something went wrong");
+        setWeatherData(false);
+        setLoading(false);
+    }
+};
+
+    useEffect(() => {
+  navigator.geolocation.getCurrentPosition(
+    (position) => {
+      const { latitude, longitude } = position.coords;
+      fetch(`http://localhost:5000/weather-by-coords?lat=${latitude}&lon=${longitude}`)
+        .then(res => res.json())
+        .then(data => {
+          setWeatherData(data);
+        });
+    },
+    () => {
+      search("London"); 
+    }
+  );
+}, []);
 
   return (
-    <div className='weather'>
-        <div className='search-bar'>
-            <input ref={inputRef} type="text" placeholder='Search'></input>
-            <img src={search_icon} alt="" onClick={()=>search(inputRef.current.value)}></img>
-        </div>
-        {weatherData?<>
-        <img src={weatherData.icon} alt='' className='weather-icon'/>
-      <p className='temperature'>{weatherData.temperature}°c</p>
-      <p className='location'>{weatherData.location}</p>
-      <div className='weather-data'>
+    <div 
+    key={weatherData?.location}
+    className={`weather fade-in ${
+    weatherData?.condition?.toLowerCase()
+  }`}
+   >
+    {weatherData?.condition === "Rain" && (
+    <div className="rain-overlay"></div>
+  )}
 
-        <div className="col">
-            <img src={humidity_icon} alt=''/>
-            <div>
-                <p>{weatherData.humidity} %</p>
-                <span>Humidity</span>
+    <div className='search-bar'>
+    <input 
+    ref={inputRef} 
+    type="text" 
+    placeholder='Search'
+    onKeyDown={(e) => {
+        if (e.key === "Enter") {
+        search(inputRef.current.value);
+        }
+  }}
+/>
+        <img 
+            src={search_icon} 
+            alt="" 
+            onClick={() => search(inputRef.current.value)} 
+        />
+    </div>
+
+    {loading && <p className="loading">Loading...</p>}
+    {error && <p className="error">{error}</p>}
+
+    {weatherData ? <>
+        <img src={weatherData.icon} alt='' className='weather-icon'/>
+
+        <p className='temperature'>{weatherData.temperature}°c</p>
+        <p className='location'>{weatherData.location}</p>
+
+        <div className='weather-data'>
+            <div className="col">
+                <img src={humidity_icon} alt=''/>
+                <div>
+                    <p>{weatherData.humidity} %</p>
+                    <span>Humidity</span>
+                </div>
             </div>
-        </div>
-        <div className="col">
-            <img src={wind_icon} alt=''/>
-            <div>
+
+            <div className="col">
+                <img src={wind_icon} alt=''/>
+                <div>
                 <p>{weatherData.windSpeed} km/h</p>
                 <span>Wind Speed</span>
+                </div>
             </div>
-    </div>
-    </div>
-        </>:<></>}
+        </div>
+        {forecast.length > 0 && (
+  <div className="forecast">
+    <h3>5-Day Forecast</h3>
+    <div className="forecast-row">
+      {forecast.map((day, index) => (
+        <div key={index} className="forecast-card">
+          <p>
+            {new Date(day.date).toLocaleDateString("en-IN", {
+              weekday: "short"
+            })}
+          </p>
 
-      
+          <img
+            src={`https://openweathermap.org/img/wn/${day.icon}@2x.png`}
+            alt=""
+          />
+
+          <p>{Math.round(day.temperature)}°C</p>
+        </div>
+      ))}
     </div>
+  </div>
+)}
+    </> : null}
+
+</div>
   )
 }
 

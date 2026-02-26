@@ -4,12 +4,19 @@
   margin: 0;
   padding: 0;
   box-sizing: border-box;
-  font-family: "Poppins", sans-serif;
+  font-family: 'Poppins', sans-serif;
+}
+
+body {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #52c0b5, #9face6);
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 .app {
-  min-height: 100vh;
-  display: grid;
-  background: #e2d4ff;
+  width: 100%;
 }
+
 

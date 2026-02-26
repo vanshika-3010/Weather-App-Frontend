@@ -1,36 +1,71 @@
-.weather{ 
-    place-self: center;
-    padding: 40px;
-    border-radius: 10px;
-    background-image: linear-gradient(45deg,#2f4680,#500ae4);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
+.weather {
+  width: 350px;
+  padding: 30px;
+  border-radius: 20px;
+  backdrop-filter: blur(18px);
+  box-shadow: 0 10px 35px rgba(0, 0, 0, 0.2);
+  text-align: center;
+  color: white;
+  transition: 0.6s ease, transform 0.3s ease;
+  position: relative;
+}
+
+.fade-in {
+  animation: fadeSlide 0.6s ease;
+}
+
+@keyframes fadeSlide {
+  from {
+    opacity: 0;
+    transform: translateY(15px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.weather.clear {
+  background: linear-gradient(135deg, #be9768, #b4b1a4);
+}
+
+.weather.clouds {
+  background: linear-gradient(135deg, #757f9a, #d7dde8);
+}
+
+.weather.rain {
+  background: linear-gradient(135deg, #3a7bd5, #3a6073);
+}
+
+.weather.snow {
+  background: linear-gradient(135deg, #e6dada, #274046);
+}
+
+.weather:hover {
+  transform: translateY(-5px);
 }
 
 .search-bar{
     display: flex;
-    align-items: center;
-    gap:12px;
+  align-items: center;
+  background: white;
+  border-radius: 50px;
+  padding: 5px 15px;
+  margin-bottom: 20px;
 }
 
 .search-bar input{
-    height:50px;
-    border:none;
-    outline: none;
-    border-radius: 40px;
-    padding-left: 25px;
-    color:#626262;
-    background: #ebfffc;
-    font-size: 18px;
+    flex: 1;
+  border: none;
+  outline: none;
+  padding: 10px;
+  font-size: 16px;
+  border-radius: 50px;
 }
 
 .search-bar img{
-    width:50px;
-    padding: 15px;
-    border-radius: 50%;
-    background: #ebfffc;
-    cursor: pointer;
+    width: 22px;
+  cursor: pointer;
 }
 
 .weather-icon{
@@ -39,14 +74,15 @@
 }
 
 .temperature{
-    color:#fff;
-    font-size: 80px;
-    line-height: 1;
+  font-size: 48px;
+  font-weight: bold;
+  margin: 10px 0;
+   color: #ffffff;
 }
 
-.location{
-    color:#fff;
-    font-size: 40px;
+.location {
+  font-size: 22px;
+  font-weight: 500;
 }
 
 .weather-data{
@@ -72,4 +108,129 @@
 .weather-data .col img{
     width: 26px;
     margin-top: 10px;
+}
+
+.loading {
+  color: #fff;
+  font-weight: 500;
+  margin-top: 10px;
+}
+
+.error {
+  color: #ff4d4d;
+  font-weight: 500;
+  margin-top: 10px;
+}
+
+@media (max-width: 480px) {
+  .weather {
+    width: 90%;
+    padding: 20px;
+  }
+
+  .temperature {
+    font-size: 36px;
+  }
+
+  .location {
+    font-size: 18px;
+  }
+
+  .weather-data {
+    flex-direction: column;
+    gap: 15px;
+  }
+}
+
+.forecast {
+  margin-top: 20px;
+}
+
+.forecast-row {
+  display: flex;
+  gap: 12px;
+  overflow-x: auto;
+  padding-bottom: 5px;
+  scroll-behavior: smooth;
+}
+
+.forecast-row::-webkit-scrollbar {
+  display: none;
+}
+
+.forecast-card {
+  min-width: 80px;
+  background: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  padding: 10px;
+  border-radius: 12px;
+  text-align: center;
+  backdrop-filter: blur(5px);
+  transition: 0.3s ease;
+  flex-shrink: 0;        
+  animation: fadeSlide 0.6s ease forwards;
+}
+
+.forecast-card:hover {
+  transform: translateY(-5px);
+}
+
+.forecast-card p:last-child {
+  font-weight: 600;
+  font-size: 18px;
+}
+
+.forecast-card img {
+  width: 40px;
+}
+
+.rain-overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+  border-radius: 20px;
+}
+
+.rain-overlay::before,
+.rain-overlay::after {
+  content: "";
+  position: absolute;
+  width: 200%;
+  height: 200%;
+  background-image: repeating-linear-gradient(
+    -20deg,
+    rgba(255, 255, 255, 0.35) 0px,
+    rgba(255, 255, 255, 0.35) 2px,
+    transparent 2px,
+    transparent 20px
+  );
+}
+
+.rain-overlay::before {
+  animation: rainFast 0.4s linear infinite;
+  opacity: 0.4;
+}
+
+.rain-overlay::after {
+  animation: rainSlow 0.8s linear infinite;
+  opacity: 0.25;
+}
+
+@keyframes rainFast {
+  from {
+    transform: translateY(-50%);
+  }
+  to {
+    transform: translateY(0%);
+  }
+}
+
+@keyframes rainSlow {
+  from {
+    transform: translateY(-60%);
+  }
+  to {
+    transform: translateY(0%);
+  }
 }
